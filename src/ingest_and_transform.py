@@ -9,11 +9,12 @@ from pyspark.sql import functions as F
 from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
 
 
-def table_names():
+def table_names(bundle_target):
     current_principal = spark.sql("SELECT current_user() AS current_user").first()["current_user"]
     principal_key = re.sub(r"[^a-z0-9_]", "_", current_principal.lower())
     principal_hash = sha1(current_principal.encode("utf-8")).hexdigest()[:8]
-    table_suffix = f"{principal_key[:32]}_{principal_hash}"
+    target_key = re.sub(r"[^a-z0-9_]", "_", bundle_target.lower())
+    table_suffix = f"{target_key}_{principal_key[:32]}_{principal_hash}"
     return (
         current_principal,
         f"proof_bronze_orders_{table_suffix}",
@@ -43,11 +44,13 @@ def bundle_root():
 
 
 run_timestamp = datetime.now(timezone.utc).isoformat()
-current_principal, bronze_table, silver_table = table_names()
+bundle_target = dbutils.widgets.get("bundle_target")
+current_principal, bronze_table, silver_table = table_names(bundle_target)
 sample_orders_path = bundle_root() / "resources" / "sample_orders.csv"
 
 print("Databricks bundle proof ingest started.")
 print(f"UTC time: {run_timestamp}")
+print(f"Bundle target: {bundle_target}")
 print(f"Current principal: {current_principal}")
 print(f"Sample input: {sample_orders_path}")
 

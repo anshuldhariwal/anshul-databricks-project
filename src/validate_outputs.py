@@ -3,11 +3,12 @@ from hashlib import sha1
 import re
 
 
-def table_names():
+def table_names(bundle_target):
     current_principal = spark.sql("SELECT current_user() AS current_user").first()["current_user"]
     principal_key = re.sub(r"[^a-z0-9_]", "_", current_principal.lower())
     principal_hash = sha1(current_principal.encode("utf-8")).hexdigest()[:8]
-    table_suffix = f"{principal_key[:32]}_{principal_hash}"
+    target_key = re.sub(r"[^a-z0-9_]", "_", bundle_target.lower())
+    table_suffix = f"{target_key}_{principal_key[:32]}_{principal_hash}"
     return (
         current_principal,
         f"proof_bronze_orders_{table_suffix}",
@@ -15,9 +16,11 @@ def table_names():
     )
 
 
-current_principal, bronze_table, silver_table = table_names()
+bundle_target = dbutils.widgets.get("bundle_target")
+current_principal, bronze_table, silver_table = table_names(bundle_target)
 
 print("Databricks bundle proof validation started.")
+print(f"Bundle target: {bundle_target}")
 print(f"Current principal: {current_principal}")
 
 bronze_df = spark.table(bronze_table)

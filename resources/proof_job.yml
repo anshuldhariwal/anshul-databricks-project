@@ -1,14 +1,18 @@
 resources:
   jobs:
     proof_job:
-      name: proof_free_automation
+      name: proof_free_automation_${var.bundle_target}
       max_concurrent_runs: 1
       tasks:
         - task_key: ingest_and_transform
           notebook_task:
             notebook_path: ../src/ingest_and_transform.py
+            base_parameters:
+              bundle_target: ${var.bundle_target}
         - task_key: validate_outputs
           depends_on:
             - task_key: ingest_and_transform
           notebook_task:
             notebook_path: ../src/validate_outputs.py
+            base_parameters:
+              bundle_target: ${var.bundle_target}

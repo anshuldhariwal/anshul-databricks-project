@@ -3,6 +3,14 @@ name: Databricks Bundle Proof
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: Databricks bundle target to validate, deploy, and run.
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
       run_job:
         description: Deploy and run the Databricks job after validation.
         required: true
@@ -16,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: databricks-free-proof
+  group: databricks-free-proof-${{ inputs.target }}
   cancel-in-progress: false
 
 jobs:
@@ -37,12 +45,12 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Validate bundle
-        run: databricks bundle validate --target dev
+        run: databricks bundle validate --target ${{ inputs.target }}
 
       - name: Deploy bundle
         if: ${{ inputs.run_job == 'true' }}
-        run: databricks bundle deploy --target dev
+        run: databricks bundle deploy --target ${{ inputs.target }}
 
       - name: Run proof job
         if: ${{ inputs.run_job == 'true' }}
-        run: databricks bundle run --target dev proof_job
+        run: databricks bundle run --target ${{ inputs.target }} proof_job

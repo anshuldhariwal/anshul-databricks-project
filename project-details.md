@@ -13,6 +13,6 @@ Proof target:
 - One Databricks Asset Bundle.
 - One ingest/transform notebook task that reads `resources/sample_orders.csv` and writes tiny managed Bronze and Silver Delta tables.
 - One validation notebook task that checks row counts, schemas, and Silver filtering.
-- Principal-specific table names to avoid local user and CI service-principal ownership conflicts.
+- Target- and principal-specific table names to avoid dev/prod and local/CI ownership conflicts.
 - One GitHub Actions workflow using `databricks/setup-cli`.
 - Manual `workflow_dispatch` trigger only.

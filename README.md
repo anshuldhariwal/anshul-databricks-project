@@ -2,7 +2,7 @@
 
 This repository starts with a free-tier proof of automation for Databricks Free Edition.
 The proof deploys and runs a Databricks Asset Bundle job that reads a committed sample CSV, writes a tiny managed Bronze Delta table, derives a cleaned managed Silver Delta table, and validates the output in a separate task.
-Table names include a suffix derived from the current Databricks principal so local OAuth runs and GitHub service-principal runs do not fight over table ownership.
+Table names include a suffix derived from the bundle target and current Databricks principal so `dev`, `prod`, local OAuth runs, and GitHub service-principal runs stay isolated.
 
 ## GitHub Secrets
 
@@ -20,7 +20,8 @@ Personal access tokens can fail for bundle automation in CI because the Databric
 2. Open Actions.
 3. Select `Databricks Bundle Proof`.
 4. Choose `Run workflow`.
-5. Leave `run_job` as `true` to validate, deploy, and run the proof job.
+5. Select `dev` or `prod`.
+6. Leave `run_job` as `true` to validate, deploy, and run the proof job.
 
 The workflow is manual only to avoid accidental Databricks Free Edition quota usage.
 
@@ -33,3 +34,5 @@ databricks bundle validate --target dev --profile DEFAULT
 databricks bundle deploy --target dev --profile DEFAULT
 databricks bundle run --target dev --profile DEFAULT proof_job
 ```
+
+Use `--target prod` for the production target after validating the development target.
