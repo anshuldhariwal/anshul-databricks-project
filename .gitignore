@@ -1,0 +1,11 @@
+.databricks/
+.databrickscfg
+.agents/
+.codex/
+__pycache__/
+.pytest_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+AGENTS.md

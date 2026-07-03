@@ -1,0 +1,47 @@
+name: Databricks Bundle Proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_job:
+        description: Deploy and run the Databricks job after validation.
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: databricks-free-proof
+  cancel-in-progress: false
+
+jobs:
+  bundle-proof:
+    name: Validate, deploy, and optionally run bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate bundle
+        run: databricks bundle validate --target dev
+
+      - name: Deploy bundle
+        if: ${{ inputs.run_job == 'true' }}
+        run: databricks bundle deploy --target dev
+
+      - name: Run proof job
+        if: ${{ inputs.run_job == 'true' }}
+        run: databricks bundle run --target dev proof_job
