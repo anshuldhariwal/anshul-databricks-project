@@ -16,14 +16,17 @@ Personal access tokens can fail for bundle automation in CI because the Databric
 
 ## Run The Proof
 
-1. Push this repository to GitHub.
-2. Open Actions.
-3. Select `Databricks Bundle Proof`.
-4. Choose `Run workflow`.
-5. Select `dev` or `prod`.
-6. Leave `run_job` as `true` to validate, deploy, and run the proof job.
+Pushes to `main` automatically validate the `dev` bundle target. They do not deploy or run the Databricks job.
 
-The workflow is manual only to avoid accidental Databricks Free Edition quota usage.
+To deploy and run manually:
+
+1. Open Actions.
+2. Select `Databricks Bundle Proof`.
+3. Choose `Run workflow`.
+4. Select `dev` or `prod`.
+5. Leave `run_job` as `true` to validate, deploy, and run the proof job.
+
+For production-like approval, create GitHub Environments named `dev` and `prod`, then add required reviewers to `prod`.
 
 ## Local Commands
 
