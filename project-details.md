@@ -11,6 +11,6 @@ Current constraints:
 
 Proof target:
 - One Databricks Asset Bundle.
-- One notebook task.
+- One notebook task that writes and validates tiny managed Bronze and Silver Delta tables.
 - One GitHub Actions workflow using `databricks/setup-cli`.
 - Manual `workflow_dispatch` trigger only.
