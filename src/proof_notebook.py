@@ -1,15 +1,22 @@
 # Databricks notebook source
 from datetime import datetime, timezone
+from hashlib import sha1
+import re
 
 from pyspark.sql import functions as F
 from pyspark.sql.types import DoubleType, IntegerType, StringType, StructField, StructType
 
 run_timestamp = datetime.now(timezone.utc).isoformat()
-bronze_table = "proof_bronze_orders"
-silver_table = "proof_silver_orders"
+current_principal = spark.sql("SELECT current_user() AS current_user").first()["current_user"]
+principal_key = re.sub(r"[^a-z0-9_]", "_", current_principal.lower())
+principal_hash = sha1(current_principal.encode("utf-8")).hexdigest()[:8]
+table_suffix = f"{principal_key[:32]}_{principal_hash}"
+bronze_table = f"proof_bronze_orders_{table_suffix}"
+silver_table = f"proof_silver_orders_{table_suffix}"
 
 print("GitHub Actions to Databricks proof started.")
 print(f"UTC time: {run_timestamp}")
+print(f"Current principal: {current_principal}")
 
 orders_schema = StructType(
     [

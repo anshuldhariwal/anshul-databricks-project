@@ -2,6 +2,7 @@
 
 This repository starts with a free-tier proof of automation for Databricks Free Edition.
 The proof deploys and runs a Databricks Asset Bundle job that writes a tiny managed Bronze Delta table, derives a cleaned managed Silver Delta table, and validates the output.
+Table names include a suffix derived from the current Databricks principal so local OAuth runs and GitHub service-principal runs do not fight over table ownership.
 
 ## GitHub Secrets
 
