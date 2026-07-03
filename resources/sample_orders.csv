@@ -1,0 +1,5 @@
+order_id,customer,status,amount
+1001,Anshul,complete,49.99
+1002,Maya,pending,15.50
+1003,Ravi,complete,84.20
+1004,Anshul,cancelled,12.00

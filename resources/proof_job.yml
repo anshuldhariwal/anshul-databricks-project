@@ -4,6 +4,11 @@ resources:
       name: proof_free_automation
       max_concurrent_runs: 1
       tasks:
-        - task_key: proof_notebook
+        - task_key: ingest_and_transform
           notebook_task:
-            notebook_path: ../src/proof_notebook.py
+            notebook_path: ../src/ingest_and_transform.py
+        - task_key: validate_outputs
+          depends_on:
+            - task_key: ingest_and_transform
+          notebook_task:
+            notebook_path: ../src/validate_outputs.py
