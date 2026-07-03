@@ -7,7 +7,10 @@ This repository starts with a free-tier proof of automation for Databricks Free 
 Add these repository secrets before running the workflow:
 
 - `DATABRICKS_HOST`: your Databricks workspace URL, for example `https://dbc-xxxx.cloud.databricks.com`
-- `DATABRICKS_TOKEN`: your Databricks personal access token with all API access
+- `DATABRICKS_CLIENT_ID`: the application/client ID for a Databricks service principal assigned to the workspace
+- `DATABRICKS_CLIENT_SECRET`: an OAuth secret generated for that service principal
+
+Personal access tokens can fail for bundle automation in CI because the Databricks CLI calls workspace identity APIs during validation. Use service-principal OAuth for GitHub Actions.
 
 ## Run The Proof
 
@@ -24,7 +27,7 @@ The workflow is manual only to avoid accidental Databricks Free Edition quota us
 If the Databricks CLI is installed locally and authenticated:
 
 ```bash
-databricks bundle validate --target dev
-databricks bundle deploy --target dev
-databricks bundle run --target dev proof_job
+databricks bundle validate --target dev --profile DEFAULT
+databricks bundle deploy --target dev --profile DEFAULT
+databricks bundle run --target dev --profile DEFAULT proof_job
 ```
