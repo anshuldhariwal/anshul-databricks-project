@@ -47,7 +47,7 @@ Milestone 3 starts the portfolio lakehouse shape from `project-details.md` witho
 Data providers:
 
 - Stocks: Nasdaq historical quote data
-- Crypto: Binance Spot Market Data API
+- Crypto: Coinbase Exchange ticker API
 
 The API calls run outside Databricks. Databricks processes a normalized JSONL batch with this schema:
 
@@ -72,7 +72,7 @@ Create a stock + crypto batch:
 python ingestion/run_pipeline.py
 ```
 
-The stock fetch uses delayed Nasdaq historical quote data and does not require an API key. The crypto fetch uses Binance public market data.
+The stock fetch uses delayed Nasdaq historical quote data and does not require an API key. The crypto fetch uses Coinbase Exchange public ticker data.
 
 In GitHub Actions, select `market_data_job` from the manual `bundle_job` input. The workflow fetches a fresh `sample_data/latest_market_batch.jsonl` before deploying the bundle, then Databricks processes that batch.
 

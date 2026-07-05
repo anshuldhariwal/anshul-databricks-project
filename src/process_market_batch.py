@@ -59,7 +59,7 @@ silver_df = (
     .withColumn("volume", F.col("volume").cast(DoubleType()))
     .withColumn("event_time", F.to_timestamp("event_time"))
     .withColumn("ingestion_time", F.to_timestamp("ingestion_time"))
-    .where(F.col("source").isin("nasdaq", "binance"))
+    .where(F.col("source").isin("nasdaq", "coinbase"))
     .where(F.col("asset_type").isin("stock", "crypto"))
     .where(F.col("symbol").isNotNull() & (F.col("symbol") != ""))
     .where(F.col("price").isNotNull() & (F.col("price") > 0))

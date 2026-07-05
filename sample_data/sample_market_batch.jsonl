@@ -1,4 +1,4 @@
 {"asset_type": "stock", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:00+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "210.50", "source": "nasdaq", "symbol": "AAPL", "volume": "100"}
 {"asset_type": "stock", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:01+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "500.25", "source": "nasdaq", "symbol": "MSFT", "volume": "120"}
-{"asset_type": "crypto", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:02+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "60000.00", "source": "binance", "symbol": "BTCUSDT", "volume": "1500.5"}
-{"asset_type": "crypto", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:03+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "3000.00", "source": "binance", "symbol": "ETHUSDT", "volume": "3200.75"}
+{"asset_type": "crypto", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:02+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "60000.00", "source": "coinbase", "symbol": "BTCUSD", "volume": "1500.5"}
+{"asset_type": "crypto", "batch_id": "sample-batch", "event_time": "2026-07-06T00:00:03+00:00", "ingestion_time": "2026-07-06T00:01:00+00:00", "price": "3000.00", "source": "coinbase", "symbol": "ETHUSD", "volume": "3200.75"}

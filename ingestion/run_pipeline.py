@@ -17,7 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--crypto-only",
         action="store_true",
-        help="Fetch Binance crypto data only. Useful before Alpaca secrets are configured.",
+        help="Fetch Coinbase crypto data only.",
     )
     return parser.parse_args()
 

@@ -9,18 +9,18 @@ from urllib.request import Request, urlopen
 
 
 STOCK_SYMBOLS = ("AAPL", "MSFT", "NVDA", "TSLA", "AMZN")
-CRYPTO_SYMBOLS = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
+CRYPTO_PRODUCTS = {
+    "BTC-USD": "BTCUSD",
+    "ETH-USD": "ETHUSD",
+    "SOL-USD": "SOLUSD",
+}
 
 NASDAQ_HISTORICAL_BASE_URL = "https://api.nasdaq.com/api/quote"
-BINANCE_BASE_URL = "https://api.binance.com"
+COINBASE_EXCHANGE_BASE_URL = "https://api.exchange.coinbase.com"
 
 
 class MarketDataError(RuntimeError):
     pass
-
-
-def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
 
 
 def _request_json(url: str, headers: dict[str, str] | None = None, timeout: int = 20) -> Any:
@@ -84,30 +84,25 @@ def fetch_nasdaq_daily_stocks(symbols: tuple[str, ...] = STOCK_SYMBOLS) -> list[
     return records
 
 
-def fetch_binance_24hr_tickers(symbols: tuple[str, ...] = CRYPTO_SYMBOLS) -> list[dict[str, Any]]:
-    query = urlencode({"symbols": json.dumps(list(symbols), separators=(",", ":"))})
-    url = f"{BINANCE_BASE_URL}/api/v3/ticker/24hr?{query}"
-    payload = _request_json(url)
-
-    if not isinstance(payload, list):
-        raise MarketDataError(f"Unexpected Binance response shape: {payload}")
-
+def fetch_coinbase_crypto_tickers(products: dict[str, str] = CRYPTO_PRODUCTS) -> list[dict[str, Any]]:
     records = []
-    for ticker in payload:
-        close_time_ms = ticker.get("closeTime")
-        event_time = (
-            datetime.fromtimestamp(close_time_ms / 1000, tz=timezone.utc).isoformat()
-            if isinstance(close_time_ms, int)
-            else utc_now_iso()
+    for product_id, symbol in products.items():
+        payload = _request_json(
+            f"{COINBASE_EXCHANGE_BASE_URL}/products/{product_id}/ticker",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
         )
+
+        if not payload.get("price") or not payload.get("volume") or not payload.get("time"):
+            raise MarketDataError(f"Unexpected Coinbase ticker response for {product_id}: {payload}")
+
         records.append(
             {
-                "source": "binance",
+                "source": "coinbase",
                 "asset_type": "crypto",
-                "symbol": ticker.get("symbol"),
-                "price": ticker.get("lastPrice"),
-                "volume": ticker.get("volume"),
-                "event_time": event_time,
+                "symbol": symbol,
+                "price": payload.get("price"),
+                "volume": payload.get("volume"),
+                "event_time": payload.get("time"),
             }
         )
     return records
@@ -118,5 +113,5 @@ def fetch_market_data(include_stocks: bool = True, include_crypto: bool = True) 
     if include_stocks:
         records.extend(fetch_nasdaq_daily_stocks())
     if include_crypto:
-        records.extend(fetch_binance_24hr_tickers())
+        records.extend(fetch_coinbase_crypto_tickers())
     return records
