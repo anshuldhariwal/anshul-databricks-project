@@ -66,6 +66,44 @@ invalid_silver_status_count = bronze_df.join(silver_df, "order_id").where("statu
 if invalid_silver_status_count != 0:
     raise ValueError(f"Found {invalid_silver_status_count} non-complete orders in Silver output")
 
+duplicate_bronze_orders = bronze_df.groupBy("order_id").count().where("count > 1").count()
+
+if duplicate_bronze_orders != 0:
+    raise ValueError(f"Found {duplicate_bronze_orders} duplicate order_id values in Bronze")
+
+null_required_bronze_rows = bronze_df.where(
+    "order_id IS NULL OR customer IS NULL OR status IS NULL OR amount IS NULL"
+).count()
+
+if null_required_bronze_rows != 0:
+    raise ValueError(f"Found {null_required_bronze_rows} Bronze rows with null required fields")
+
+invalid_bronze_amount_rows = bronze_df.where("amount <= 0").count()
+
+if invalid_bronze_amount_rows != 0:
+    raise ValueError(f"Found {invalid_bronze_amount_rows} Bronze rows with non-positive amounts")
+
+invalid_silver_amount_rows = silver_df.where("amount <= 0").count()
+
+if invalid_silver_amount_rows != 0:
+    raise ValueError(f"Found {invalid_silver_amount_rows} Silver rows with non-positive amounts")
+
+invalid_amount_bucket_rows = silver_df.where(
+    "(amount >= 50 AND amount_bucket != 'high') OR (amount < 50 AND amount_bucket != 'standard')"
+).count()
+
+if invalid_amount_bucket_rows != 0:
+    raise ValueError(f"Found {invalid_amount_bucket_rows} Silver rows with invalid amount_bucket values")
+
+expected_silver_order_ids = {row["order_id"] for row in bronze_df.where("status = 'complete'").select("order_id").collect()}
+actual_silver_order_ids = {row["order_id"] for row in silver_df.select("order_id").collect()}
+
+if expected_silver_order_ids != actual_silver_order_ids:
+    raise ValueError(
+        "Silver order_id set does not match complete Bronze orders: "
+        f"expected={sorted(expected_silver_order_ids)}, actual={sorted(actual_silver_order_ids)}"
+    )
+
 print("Bronze Delta table:", bronze_table)
 print("Silver Delta table:", silver_table)
 print(f"Validation passed: bronze_count={bronze_count}, silver_count={silver_count}")

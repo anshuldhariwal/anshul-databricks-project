@@ -16,3 +16,28 @@ resources:
             notebook_path: ../src/validate_outputs.py
             base_parameters:
               bundle_target: ${var.bundle_target}
+    market_data_job:
+      name: market_data_lakehouse_${var.bundle_target}
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: process_market_batch
+          notebook_task:
+            notebook_path: ../src/process_market_batch.py
+            base_parameters:
+              bundle_target: ${var.bundle_target}
+        - task_key: validate_market_outputs
+          depends_on:
+            - task_key: process_market_batch
+          notebook_task:
+            notebook_path: ../src/validate_market_outputs.py
+            base_parameters:
+              bundle_target: ${var.bundle_target}
+    cleanup_proof_tables:
+      name: cleanup_proof_tables_${var.bundle_target}
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: cleanup_proof_tables
+          notebook_task:
+            notebook_path: ../src/cleanup_proof_tables.py
+            base_parameters:
+              bundle_target: ${var.bundle_target}

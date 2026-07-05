@@ -27,6 +27,15 @@ on:
         options:
           - "true"
           - "false"
+      bundle_job:
+        description: Bundle job to run when run_job is true.
+        required: true
+        default: "proof_job"
+        type: choice
+        options:
+          - proof_job
+          - market_data_job
+          - cleanup_proof_tables
 
 permissions:
   contents: read
@@ -44,9 +53,11 @@ jobs:
     env:
       BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
       RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || 'false' }}
+      BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || 'proof_job' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
 
     steps:
       - name: Checkout
@@ -55,6 +66,16 @@ jobs:
       - name: Set up Databricks CLI
         uses: databricks/setup-cli@main
 
+      - name: Set up Python
+        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch market data batch
+        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        run: python ingestion/run_pipeline.py --output sample_data/latest_market_batch.jsonl
+
       - name: Validate bundle
         run: databricks bundle validate --target "$BUNDLE_TARGET"
 
@@ -62,6 +83,6 @@ jobs:
         if: ${{ env.RUN_JOB == 'true' }}
         run: databricks bundle deploy --target "$BUNDLE_TARGET"
 
-      - name: Run proof job
+      - name: Run bundle job
         if: ${{ env.RUN_JOB == 'true' }}
-        run: databricks bundle run --target "$BUNDLE_TARGET" proof_job
+        run: databricks bundle run --target "$BUNDLE_TARGET" "$BUNDLE_JOB"
