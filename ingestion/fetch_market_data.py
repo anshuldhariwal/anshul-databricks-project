@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import json
-import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -12,7 +11,7 @@ from urllib.request import Request, urlopen
 STOCK_SYMBOLS = ("AAPL", "MSFT", "NVDA", "TSLA", "AMZN")
 CRYPTO_SYMBOLS = ("BTCUSDT", "ETHUSDT", "SOLUSDT")
 
-ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
+NASDAQ_HISTORICAL_BASE_URL = "https://api.nasdaq.com/api/quote"
 BINANCE_BASE_URL = "https://api.binance.com"
 
 
@@ -38,43 +37,48 @@ def _request_json(url: str, headers: dict[str, str] | None = None, timeout: int 
     return json.loads(body)
 
 
-def fetch_alpha_vantage_daily_stocks(symbols: tuple[str, ...] = STOCK_SYMBOLS) -> list[dict[str, Any]]:
-    api_key = os.environ.get("ALPHA_VANTAGE_API_KEY")
+def _clean_market_number(value: Any) -> str:
+    return str(value).replace("$", "").replace(",", "").strip()
 
-    if not api_key:
-        raise MarketDataError("ALPHA_VANTAGE_API_KEY is required for stock data.")
 
+def fetch_nasdaq_daily_stocks(symbols: tuple[str, ...] = STOCK_SYMBOLS) -> list[dict[str, Any]]:
+    today = datetime.now(timezone.utc).date()
+    from_date = today - timedelta(days=45)
     records = []
     for symbol in symbols:
         query = urlencode(
             {
-                "function": "TIME_SERIES_DAILY",
-                "symbol": symbol,
-                "outputsize": "compact",
-                "apikey": api_key,
+                "assetclass": "stocks",
+                "fromdate": from_date.isoformat(),
+                "todate": today.isoformat(),
+                "limit": "5",
             }
         )
-        payload = _request_json(f"{ALPHA_VANTAGE_BASE_URL}?{query}")
+        payload = _request_json(
+            f"{NASDAQ_HISTORICAL_BASE_URL}/{symbol}/historical?{query}",
+            headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"},
+        )
 
-        if "Note" in payload or "Information" in payload:
-            raise MarketDataError(f"Alpha Vantage rate limit or notice for {symbol}: {payload}")
-        if "Error Message" in payload:
-            raise MarketDataError(f"Alpha Vantage error for {symbol}: {payload['Error Message']}")
+        status = payload.get("status", {})
+        if status.get("rCode") != 200:
+            raise MarketDataError(f"Nasdaq error for {symbol}: {payload}")
 
-        daily_series = payload.get("Time Series (Daily)")
-        if not isinstance(daily_series, dict) or not daily_series:
-            raise MarketDataError(f"Unexpected Alpha Vantage response shape for {symbol}: {payload}")
+        rows = payload.get("data", {}).get("tradesTable", {}).get("rows", [])
+        rows = [row for row in rows if row.get("date") and row.get("close") and row.get("volume")]
+        if not rows:
+            raise MarketDataError(f"Nasdaq returned no historical rows for {symbol}: {payload}")
 
-        latest_day = max(daily_series)
-        latest_bar = daily_series[latest_day]
+        latest_bar = rows[0]
+        event_date = datetime.strptime(latest_bar["date"], "%m/%d/%Y").date()
+
         records.append(
             {
-                "source": "alpha_vantage",
+                "source": "nasdaq",
                 "asset_type": "stock",
                 "symbol": symbol,
-                "price": latest_bar.get("4. close"),
-                "volume": latest_bar.get("5. volume"),
-                "event_time": f"{latest_day}T00:00:00+00:00",
+                "price": _clean_market_number(latest_bar["close"]),
+                "volume": _clean_market_number(latest_bar["volume"]),
+                "event_time": f"{event_date.isoformat()}T00:00:00+00:00",
             }
         )
     return records
@@ -112,7 +116,7 @@ def fetch_binance_24hr_tickers(symbols: tuple[str, ...] = CRYPTO_SYMBOLS) -> lis
 def fetch_market_data(include_stocks: bool = True, include_crypto: bool = True) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     if include_stocks:
-        records.extend(fetch_alpha_vantage_daily_stocks())
+        records.extend(fetch_nasdaq_daily_stocks())
     if include_crypto:
         records.extend(fetch_binance_24hr_tickers())
     return records

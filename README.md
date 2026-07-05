@@ -11,8 +11,6 @@ Add these repository secrets before running the workflow:
 - `DATABRICKS_HOST`: your Databricks workspace URL, for example `https://dbc-xxxx.cloud.databricks.com`
 - `DATABRICKS_CLIENT_ID`: the application/client ID for a Databricks service principal assigned to the workspace
 - `DATABRICKS_CLIENT_SECRET`: an OAuth secret generated for that service principal
-- `ALPHA_VANTAGE_API_KEY`: Alpha Vantage API key used only when running the market data job
-
 Personal access tokens can fail for bundle automation in CI because the Databricks CLI calls workspace identity APIs during validation. Use service-principal OAuth for GitHub Actions.
 
 ## Run The Proof
@@ -48,7 +46,7 @@ Milestone 3 starts the portfolio lakehouse shape from `project-details.md` witho
 
 Data providers:
 
-- Stocks: Alpha Vantage daily stock time series
+- Stocks: Nasdaq historical quote data
 - Crypto: Binance Spot Market Data API
 
 The API calls run outside Databricks. Databricks processes a normalized JSONL batch with this schema:
@@ -68,14 +66,13 @@ Create a local crypto-only test batch without secrets:
 python ingestion/run_pipeline.py --crypto-only
 ```
 
-Create a stock + crypto batch after setting an Alpha Vantage key:
+Create a stock + crypto batch:
 
 ```bash
-set ALPHA_VANTAGE_API_KEY=your_key
 python ingestion/run_pipeline.py
 ```
 
-The stock fetch uses one Alpha Vantage request per configured stock symbol. The default symbol list has five stocks, so one full run uses five Alpha Vantage requests plus one Binance request. Avoid repeated full runs while using a free Alpha Vantage key.
+The stock fetch uses delayed Nasdaq historical quote data and does not require an API key. The crypto fetch uses Binance public market data.
 
 In GitHub Actions, select `market_data_job` from the manual `bundle_job` input. The workflow fetches a fresh `sample_data/latest_market_batch.jsonl` before deploying the bundle, then Databricks processes that batch.
 
@@ -101,4 +98,4 @@ Run cleanup manually when proof tables get noisy:
 databricks bundle run --target dev --profile DEFAULT cleanup_proof_tables
 ```
 
-Do not store Alpha Vantage, Databricks, Cloudflare, or other secrets in this repository.
+Do not store Databricks, Cloudflare, or other secrets in this repository.

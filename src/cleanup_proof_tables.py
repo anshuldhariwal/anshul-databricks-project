@@ -1,6 +1,7 @@
 # Databricks notebook source
 # MAGIC %run ./market_common
 
+# COMMAND ----------
 
 bundle_target = dbutils.widgets.get("bundle_target")
 current_principal, proof_bronze_table, proof_silver_table = proof_order_table_names(bundle_target)

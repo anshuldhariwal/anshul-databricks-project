@@ -3,6 +3,7 @@ from pyspark.sql import functions as F
 
 # MAGIC %run ./market_common
 
+# COMMAND ----------
 
 def require(condition, message):
     if not condition:
@@ -111,7 +112,7 @@ null_required_count = silver_df.where(
 ).count()
 require(null_required_count == 0, f"Silver has {null_required_count} rows with null required fields.")
 
-invalid_source_count = silver_df.where(~F.col("source").isin("alpha_vantage", "binance")).count()
+invalid_source_count = silver_df.where(~F.col("source").isin("nasdaq", "binance")).count()
 invalid_asset_count = silver_df.where(~F.col("asset_type").isin("stock", "crypto")).count()
 invalid_numeric_count = silver_df.where((F.col("price") <= 0) | (F.col("volume") <= 0)).count()
 

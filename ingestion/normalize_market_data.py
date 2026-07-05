@@ -43,7 +43,7 @@ def normalize_records(records: Iterable[dict[str, Any]], batch_id: str | None = 
         symbol = str(record.get("symbol", "")).strip().upper()
         event_time = str(record.get("event_time", "")).strip()
 
-        if source not in {"alpha_vantage", "binance"}:
+        if source not in {"nasdaq", "binance"}:
             raise ValueError(f"Unsupported source: {source!r}")
         if asset_type not in {"stock", "crypto"}:
             raise ValueError(f"Unsupported asset_type: {asset_type!r}")
