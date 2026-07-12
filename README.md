@@ -29,7 +29,7 @@ Cloudflare KV upload is optional. If the Cloudflare secrets are not present, the
 
 Pushes to `main` automatically validate the `dev` bundle target. They do not deploy or run the Databricks job.
 
-Scheduled market automation runs once per hour at minute 17 UTC. Scheduled market runs use the `prod` bundle target, fetch a fresh market batch, run `market_data_job`, export the dashboard JSON, and deploy GitHub Pages.
+Scheduled market automation runs once per hour at minute 37 UTC. Scheduled market runs use the `prod` bundle target, fetch a fresh market batch, run `market_data_job`, export the dashboard JSON, and deploy GitHub Pages.
 
 Scheduled cleanup runs once per day at 02:43 UTC. Cleanup uses the `prod` bundle target and runs `cleanup_proof_tables`; it does not fetch market data or deploy the dashboard.
 

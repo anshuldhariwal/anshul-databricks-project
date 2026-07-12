@@ -2,7 +2,7 @@ name: Databricks Bundle Proof
 
 on:
   schedule:
-    - cron: "17 * * * *"   # hourly production market refresh
+    - cron: "37 * * * *"   # hourly production market refresh
     - cron: "43 2 * * *"   # daily production cleanup
   push:
     branches:
@@ -170,7 +170,7 @@ jobs:
   deploy-pages:
     name: Deploy dashboard to GitHub Pages
     needs: bundle-proof
-    if: ${{ github.event_name == 'push' || (github.event_name == 'schedule' && github.event.schedule == '17 * * * *') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.automation_test == 'true' || (github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job'))) }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'schedule' && github.event.schedule == '37 * * * *') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.automation_test == 'true' || (github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job'))) }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
