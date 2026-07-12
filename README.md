@@ -11,10 +11,16 @@ Add these repository secrets before running the workflow:
 - `DATABRICKS_HOST`: your Databricks workspace URL, for example `https://dbc-xxxx.cloud.databricks.com`
 - `DATABRICKS_CLIENT_ID`: the application/client ID for a Databricks service principal assigned to the workspace
 - `DATABRICKS_CLIENT_SECRET`: an OAuth secret generated for that service principal
-- `DATABRICKS_WAREHOUSE_ID`: SQL warehouse ID used to export compact dashboard JSON
+- `DATABRICKS_WAREHOUSE_ID`: SQL warehouse ID used to export compact dashboard JSON. If this is omitted, the workflow uses the existing `Serverless Starter Warehouse` ID `be486f5b1f5510f1`.
 - `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID for dashboard JSON upload
 - `CLOUDFLARE_KV_NAMESPACE_ID`: Cloudflare KV namespace ID for dashboard JSON
 - `CLOUDFLARE_API_TOKEN`: Cloudflare API token with write access to that KV namespace
+- `SMTP_HOST`: SMTP server used for workflow notification emails
+- `SMTP_PORT`: SMTP port, typically `587` for STARTTLS or `465` for SSL
+- `SMTP_USERNAME`: SMTP username
+- `SMTP_PASSWORD`: SMTP password or app password
+- `ALERT_EMAIL_TO`: email address that receives workflow start/completion notifications
+- `ALERT_EMAIL_FROM`: sender email address. If omitted, `SMTP_USERNAME` is used.
 
 Personal access tokens can fail for bundle automation in CI because the Databricks CLI calls workspace identity APIs during validation. Use service-principal OAuth for GitHub Actions.
 Cloudflare KV upload is optional. If the Cloudflare secrets are not present, the workflow still deploys the static dashboard to GitHub Pages.
@@ -23,10 +29,11 @@ Cloudflare KV upload is optional. If the Cloudflare secrets are not present, the
 
 Pushes to `main` automatically validate the `dev` bundle target. They do not deploy or run the Databricks job.
 
-Scheduled runs are intentionally paused until the dashboard export/upload flow is fully concrete. The workflow contains commented schedule entries for:
+Scheduled market automation runs once per hour at minute 17 UTC. Scheduled market runs use the `prod` bundle target, fetch a fresh market batch, run `market_data_job`, export the dashboard JSON, and deploy GitHub Pages.
 
-- Hourly market refresh at minute 17 UTC.
-- Daily cleanup at 02:43 UTC.
+Scheduled cleanup runs once per day at 02:43 UTC. Cleanup uses the `prod` bundle target and runs `cleanup_proof_tables`; it does not fetch market data or deploy the dashboard.
+
+The workflow sends an email when a production automation run starts and another email when it completes. This applies to both market refresh and cleanup runs. If any scheduled automation run fails or is cancelled, the workflow disables itself through the GitHub Actions API so the automation stops until it is reviewed and manually re-enabled.
 
 To deploy and run manually:
 

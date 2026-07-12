@@ -1,10 +1,9 @@
 name: Databricks Bundle Proof
 
 on:
-  # Enable after the market dashboard export/upload flow is concrete:
-  # schedule:
-  #   - cron: "17 * * * *"   # hourly market refresh
-  #   - cron: "43 2 * * *"   # daily cleanup
+  schedule:
+    - cron: "17 * * * *"   # hourly production market refresh
+    - cron: "43 2 * * *"   # daily production cleanup
   push:
     branches:
       - main
@@ -55,9 +54,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 
 concurrency:
-  group: databricks-free-proof-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
+  group: databricks-free-proof-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
   cancel-in-progress: false
 
 jobs:
@@ -65,19 +65,25 @@ jobs:
     name: Validate, deploy, and optionally run bundle
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
     env:
-      BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
+      BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
       RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || github.event_name == 'schedule' && 'true' || 'false' }}
       BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
       AUTOMATION_TEST: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.automation_test || 'false' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-      DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+      DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID || 'be486f5b1f5510f1' }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+      ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
 
     steps:
       - name: Checkout
@@ -87,10 +93,25 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Set up Python
-        if: ${{ env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
+        if: ${{ env.RUN_JOB == 'true' || env.AUTOMATION_TEST == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Send run started email
+        if: ${{ env.RUN_JOB == 'true' || env.AUTOMATION_TEST == 'true' }}
+        run: >
+          python ingestion/send_workflow_email.py
+          --subject "Databricks market automation started: $BUNDLE_TARGET/$BUNDLE_JOB"
+          --body "GitHub Actions run started.
+          Repository: $GITHUB_REPOSITORY
+          Workflow: $GITHUB_WORKFLOW
+          Run ID: $GITHUB_RUN_ID
+          Run attempt: $GITHUB_RUN_ATTEMPT
+          Target: $BUNDLE_TARGET
+          Job: $BUNDLE_JOB
+          Event: $GITHUB_EVENT_NAME
+          URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Fetch market data batch
         if: ${{ env.AUTOMATION_TEST != 'true' && env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
@@ -141,7 +162,7 @@ jobs:
         run: python ingestion/upload_cloudflare_kv.py --input frontend/latest_market_summary.json
 
       - name: Upload GitHub Pages artifact
-        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'schedule' && env.BUNDLE_JOB == 'market_data_job') || env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: frontend
@@ -149,7 +170,7 @@ jobs:
   deploy-pages:
     name: Deploy dashboard to GitHub Pages
     needs: bundle-proof
-    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.automation_test == 'true' || (github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job'))) }}
+    if: ${{ github.event_name == 'push' || (github.event_name == 'schedule' && github.event.schedule == '17 * * * *') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.automation_test == 'true' || (github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job'))) }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -161,3 +182,66 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify-completion:
+    name: Send completion email
+    needs:
+      - bundle-proof
+      - deploy-pages
+    if: ${{ always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_job == 'true' || github.event.inputs.automation_test == 'true'))) }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
+    env:
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+      ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+      BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
+      BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Send completion email
+        run: >
+          python ingestion/send_workflow_email.py
+          --subject "Databricks market automation completed: ${{ needs.bundle-proof.result }}/${{ needs.deploy-pages.result }}"
+          --body "GitHub Actions run completed.
+          Repository: $GITHUB_REPOSITORY
+          Workflow: $GITHUB_WORKFLOW
+          Run ID: $GITHUB_RUN_ID
+          Run attempt: $GITHUB_RUN_ATTEMPT
+          Target: $BUNDLE_TARGET
+          Job: $BUNDLE_JOB
+          Bundle job result: ${{ needs.bundle-proof.result }}
+          Pages deploy result: ${{ needs.deploy-pages.result }}
+          Event: $GITHUB_EVENT_NAME
+          URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+  disable-scheduled-automation-on-failure:
+    name: Disable scheduled automation after failure
+    needs:
+      - bundle-proof
+      - deploy-pages
+      - notify-completion
+    if: ${{ always() && github.event_name == 'schedule' && (needs.bundle-proof.result == 'failure' || needs.bundle-proof.result == 'cancelled' || needs.deploy-pages.result == 'failure' || needs.deploy-pages.result == 'cancelled' || needs.notify-completion.result == 'failure' || needs.notify-completion.result == 'cancelled') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disable workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          WORKFLOW_FILE: databricks-bundle-proof.yml
+        run: |
+          curl -sS -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${REPOSITORY}/actions/workflows/${WORKFLOW_FILE}/disable"
