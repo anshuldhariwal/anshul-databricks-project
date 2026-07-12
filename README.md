@@ -11,11 +11,21 @@ Add these repository secrets before running the workflow:
 - `DATABRICKS_HOST`: your Databricks workspace URL, for example `https://dbc-xxxx.cloud.databricks.com`
 - `DATABRICKS_CLIENT_ID`: the application/client ID for a Databricks service principal assigned to the workspace
 - `DATABRICKS_CLIENT_SECRET`: an OAuth secret generated for that service principal
+- `DATABRICKS_WAREHOUSE_ID`: SQL warehouse ID used to export compact dashboard JSON
+- `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID for dashboard JSON upload
+- `CLOUDFLARE_KV_NAMESPACE_ID`: Cloudflare KV namespace ID for dashboard JSON
+- `CLOUDFLARE_API_TOKEN`: Cloudflare API token with write access to that KV namespace
+
 Personal access tokens can fail for bundle automation in CI because the Databricks CLI calls workspace identity APIs during validation. Use service-principal OAuth for GitHub Actions.
 
 ## Run The Proof
 
 Pushes to `main` automatically validate the `dev` bundle target. They do not deploy or run the Databricks job.
+
+Scheduled runs are intentionally paused until the dashboard export/upload flow is fully concrete. The workflow contains commented schedule entries for:
+
+- Hourly market refresh at minute 17 UTC.
+- Daily cleanup at 02:43 UTC.
 
 To deploy and run manually:
 
@@ -75,6 +85,15 @@ python ingestion/run_pipeline.py
 The stock fetch uses delayed Nasdaq historical quote data and does not require an API key. The crypto fetch uses Coinbase Exchange public ticker data.
 
 In GitHub Actions, select `market_data_job` from the manual `bundle_job` input. The workflow fetches a fresh `sample_data/latest_market_batch.jsonl` before deploying the bundle, then Databricks processes that batch.
+
+After the market job succeeds, GitHub Actions queries Databricks through the SQL Statement API, writes `frontend/latest_market_summary.json`, and uploads that compact JSON to Cloudflare KV.
+
+The dashboard JSON stays small:
+
+- latest Bronze sample records: up to 10 rows
+- Gold latest summary: up to 10 rows
+- Gold top stock transactions: up to 5 rows
+- Gold top crypto transactions: up to 5 rows
 
 The committed replay batch is `sample_data/sample_market_batch.jsonl`. The Databricks market job reads that file from the deployed bundle and writes:
 

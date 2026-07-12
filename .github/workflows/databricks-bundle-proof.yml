@@ -1,12 +1,18 @@
 name: Databricks Bundle Proof
 
 on:
+  # Enable after the market dashboard export/upload flow is concrete:
+  # schedule:
+  #   - cron: "17 * * * *"   # hourly market refresh
+  #   - cron: "43 2 * * *"   # daily cleanup
   push:
     branches:
       - main
     paths:
       - ".github/workflows/databricks-bundle-proof.yml"
       - "databricks.yml"
+      - "frontend/**"
+      - "ingestion/**"
       - "resources/**"
       - "src/**"
   workflow_dispatch:
@@ -52,11 +58,15 @@ jobs:
     environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
     env:
       BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
-      RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || 'false' }}
-      BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || 'proof_job' }}
+      RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || github.event_name == 'schedule' && 'true' || 'false' }}
+      BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_KV_NAMESPACE_ID: ${{ secrets.CLOUDFLARE_KV_NAMESPACE_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     steps:
       - name: Checkout
@@ -85,3 +95,11 @@ jobs:
       - name: Run bundle job
         if: ${{ env.RUN_JOB == 'true' }}
         run: databricks bundle run --target "$BUNDLE_TARGET" "$BUNDLE_JOB"
+
+      - name: Export market dashboard JSON
+        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        run: python ingestion/export_market_dashboard.py --target "$BUNDLE_TARGET" --output frontend/latest_market_summary.json
+
+      - name: Upload market dashboard JSON to Cloudflare KV
+        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        run: python ingestion/upload_cloudflare_kv.py --input frontend/latest_market_summary.json
