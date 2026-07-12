@@ -3,237 +3,237 @@
     "latest_records": [
       {
         "asset_type": "crypto",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-05T22:49:40.572792177Z",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "63554.05",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-12T15:58:21.998137659Z",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "64122.77",
         "source": "coinbase",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "BTCUSD",
-        "volume": "3655.10217031"
+        "volume": "2795.77064009"
       },
       {
         "asset_type": "crypto",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-05T22:49:40.081563171Z",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "81.66",
-        "source": "coinbase",
-        "source_file": "latest_market_batch.jsonl",
-        "symbol": "SOLUSD",
-        "volume": "461632.47881187"
-      },
-      {
-        "asset_type": "crypto",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-05T22:49:39.375788897Z",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "1787.16",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-12T15:58:21.815272034Z",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "1819.87",
         "source": "coinbase",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "ETHUSD",
-        "volume": "40255.55081731"
+        "volume": "55333.30760247"
+      },
+      {
+        "asset_type": "crypto",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-12T15:58:13.382639491Z",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "77.38",
+        "source": "coinbase",
+        "source_file": "latest_market_batch.jsonl",
+        "symbol": "SOLUSD",
+        "volume": "473014.86915688"
       },
       {
         "asset_type": "stock",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-02T00:00:00+00:00",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "390.49",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-10T00:00:00+00:00",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "385.10",
         "source": "nasdaq",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "MSFT",
-        "volume": "42194410"
+        "volume": "24644610"
       },
       {
         "asset_type": "stock",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-02T00:00:00+00:00",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "194.83",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-10T00:00:00+00:00",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "210.96",
         "source": "nasdaq",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "NVDA",
-        "volume": "142385500"
+        "volume": "148421000"
       },
       {
         "asset_type": "stock",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-02T00:00:00+00:00",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "308.63",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-10T00:00:00+00:00",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "315.32",
         "source": "nasdaq",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "AAPL",
-        "volume": "75400630"
+        "volume": "34132320"
       },
       {
         "asset_type": "stock",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-02T00:00:00+00:00",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "393.45",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-10T00:00:00+00:00",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "407.76",
         "source": "nasdaq",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "TSLA",
-        "volume": "73915760"
+        "volume": "33410000"
       },
       {
         "asset_type": "stock",
-        "batch_id": "08e88039-fc68-410c-9bd8-06ad0a4c4a59",
-        "event_time": "2026-07-02T00:00:00+00:00",
-        "ingestion_time": "2026-07-05T22:49:41.418777+00:00",
-        "price": "242.67",
+        "batch_id": "3a0c3779-734b-42fa-86e3-479302882315",
+        "event_time": "2026-07-10T00:00:00+00:00",
+        "ingestion_time": "2026-07-12T15:58:23.224109+00:00",
+        "price": "245.34",
         "source": "nasdaq",
         "source_file": "latest_market_batch.jsonl",
         "symbol": "AMZN",
-        "volume": "48298140"
+        "volume": "31654000"
       }
     ]
   },
   "bundle_target": "dev",
-  "generated_at": "2026-07-05T23:15:32.144450+00:00",
+  "generated_at": "2026-07-12T16:02:56.298156+00:00",
   "gold": {
     "latest_summary": [
       {
         "asset_type": "crypto",
-        "high": "63554.05",
-        "last_updated": "2026-07-05T22:49:40.572Z",
-        "latest_price": "63554.05",
-        "low": "63554.05",
+        "high": "64122.77",
+        "last_updated": "2026-07-12T15:58:21.998Z",
+        "latest_price": "64122.77",
+        "low": "64122.77",
         "symbol": "BTCUSD",
-        "volume": "3655.10217031"
+        "volume": "2795.77064009"
       },
       {
         "asset_type": "crypto",
-        "high": "1787.16",
-        "last_updated": "2026-07-05T22:49:39.375Z",
-        "latest_price": "1787.16",
-        "low": "1787.16",
+        "high": "1819.87",
+        "last_updated": "2026-07-12T15:58:21.815Z",
+        "latest_price": "1819.87",
+        "low": "1819.87",
         "symbol": "ETHUSD",
-        "volume": "40255.55081731"
+        "volume": "55333.30760247"
       },
       {
         "asset_type": "crypto",
-        "high": "81.66",
-        "last_updated": "2026-07-05T22:49:40.081Z",
-        "latest_price": "81.66",
-        "low": "81.66",
+        "high": "77.38",
+        "last_updated": "2026-07-12T15:58:13.382Z",
+        "latest_price": "77.38",
+        "low": "77.38",
         "symbol": "SOLUSD",
-        "volume": "461632.47881187"
+        "volume": "473014.86915688"
       },
       {
         "asset_type": "stock",
-        "high": "308.63",
-        "last_updated": "2026-07-02T00:00:00.000Z",
-        "latest_price": "308.63",
-        "low": "308.63",
+        "high": "315.32",
+        "last_updated": "2026-07-10T00:00:00.000Z",
+        "latest_price": "315.32",
+        "low": "315.32",
         "symbol": "AAPL",
-        "volume": "7.540063E7"
+        "volume": "3.413232E7"
       },
       {
         "asset_type": "stock",
-        "high": "242.67",
-        "last_updated": "2026-07-02T00:00:00.000Z",
-        "latest_price": "242.67",
-        "low": "242.67",
+        "high": "245.34",
+        "last_updated": "2026-07-10T00:00:00.000Z",
+        "latest_price": "245.34",
+        "low": "245.34",
         "symbol": "AMZN",
-        "volume": "4.829814E7"
+        "volume": "3.1654E7"
       },
       {
         "asset_type": "stock",
-        "high": "390.49",
-        "last_updated": "2026-07-02T00:00:00.000Z",
-        "latest_price": "390.49",
-        "low": "390.49",
+        "high": "385.1",
+        "last_updated": "2026-07-10T00:00:00.000Z",
+        "latest_price": "385.1",
+        "low": "385.1",
         "symbol": "MSFT",
-        "volume": "4.219441E7"
+        "volume": "2.464461E7"
       },
       {
         "asset_type": "stock",
-        "high": "194.83",
-        "last_updated": "2026-07-02T00:00:00.000Z",
-        "latest_price": "194.83",
-        "low": "194.83",
+        "high": "210.96",
+        "last_updated": "2026-07-10T00:00:00.000Z",
+        "latest_price": "210.96",
+        "low": "210.96",
         "symbol": "NVDA",
-        "volume": "1.423855E8"
+        "volume": "1.48421E8"
       },
       {
         "asset_type": "stock",
-        "high": "393.45",
-        "last_updated": "2026-07-02T00:00:00.000Z",
-        "latest_price": "393.45",
-        "low": "393.45",
+        "high": "407.76",
+        "last_updated": "2026-07-10T00:00:00.000Z",
+        "latest_price": "407.76",
+        "low": "407.76",
         "symbol": "TSLA",
-        "volume": "7.391576E7"
+        "volume": "3.341E7"
       }
     ],
     "top_crypto_transactions": [
       {
-        "event_time": "2026-07-05T22:49:40.572Z",
-        "price": "63554.05",
+        "event_time": "2026-07-12T15:58:21.998Z",
+        "price": "64122.77",
         "rank": "1",
         "symbol": "BTCUSD",
-        "transaction_value": "2.3229654608699027E8",
-        "volume": "3655.10217031"
+        "transaction_value": "1.7927255772724384E8",
+        "volume": "2795.77064009"
       },
       {
-        "event_time": "2026-07-05T22:49:39.375Z",
-        "price": "1787.16",
+        "event_time": "2026-07-12T15:58:21.815Z",
+        "price": "1819.87",
         "rank": "2",
         "symbol": "ETHUSD",
-        "transaction_value": "7.194311019866374E7",
-        "volume": "40255.55081731"
+        "transaction_value": "1.0069942650650707E8",
+        "volume": "55333.30760247"
       },
       {
-        "event_time": "2026-07-05T22:49:40.081Z",
-        "price": "81.66",
+        "event_time": "2026-07-12T15:58:13.382Z",
+        "price": "77.38",
         "rank": "3",
         "symbol": "SOLUSD",
-        "transaction_value": "3.76969082197773E7",
-        "volume": "461632.47881187"
+        "transaction_value": "3.6601890575359374E7",
+        "volume": "473014.86915688"
       }
     ],
     "top_stock_transactions": [
       {
-        "event_time": "2026-07-02T00:00:00.000Z",
-        "price": "393.45",
+        "event_time": "2026-07-10T00:00:00.000Z",
+        "price": "210.96",
         "rank": "1",
-        "symbol": "TSLA",
-        "transaction_value": "2.9082155772E10",
-        "volume": "7.391576E7"
-      },
-      {
-        "event_time": "2026-07-02T00:00:00.000Z",
-        "price": "194.83",
-        "rank": "2",
         "symbol": "NVDA",
-        "transaction_value": "2.7740966965E10",
-        "volume": "1.423855E8"
+        "transaction_value": "3.131089416E10",
+        "volume": "1.48421E8"
       },
       {
-        "event_time": "2026-07-02T00:00:00.000Z",
-        "price": "308.63",
+        "event_time": "2026-07-10T00:00:00.000Z",
+        "price": "407.76",
+        "rank": "2",
+        "symbol": "TSLA",
+        "transaction_value": "1.36232616E10",
+        "volume": "3.341E7"
+      },
+      {
+        "event_time": "2026-07-10T00:00:00.000Z",
+        "price": "315.32",
         "rank": "3",
         "symbol": "AAPL",
-        "transaction_value": "2.32708964369E10",
-        "volume": "7.540063E7"
+        "transaction_value": "1.07626031424E10",
+        "volume": "3.413232E7"
       },
       {
-        "event_time": "2026-07-02T00:00:00.000Z",
-        "price": "390.49",
+        "event_time": "2026-07-10T00:00:00.000Z",
+        "price": "385.1",
         "rank": "4",
         "symbol": "MSFT",
-        "transaction_value": "1.64764951609E10",
-        "volume": "4.219441E7"
+        "transaction_value": "9.490639311E9",
+        "volume": "2.464461E7"
       },
       {
-        "event_time": "2026-07-02T00:00:00.000Z",
-        "price": "242.67",
+        "event_time": "2026-07-10T00:00:00.000Z",
+        "price": "245.34",
         "rank": "5",
         "symbol": "AMZN",
-        "transaction_value": "1.17205096338E10",
-        "volume": "4.829814E7"
+        "transaction_value": "7.76599236E9",
+        "volume": "3.1654E7"
       }
     ]
   },
