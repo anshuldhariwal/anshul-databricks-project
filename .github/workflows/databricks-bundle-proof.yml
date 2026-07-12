@@ -45,6 +45,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: databricks-free-proof-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
@@ -101,5 +103,27 @@ jobs:
         run: python ingestion/export_market_dashboard.py --target "$BUNDLE_TARGET" --output frontend/latest_market_summary.json
 
       - name: Upload market dashboard JSON to Cloudflare KV
-        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' && env.CLOUDFLARE_ACCOUNT_ID != '' && env.CLOUDFLARE_KV_NAMESPACE_ID != '' && env.CLOUDFLARE_API_TOKEN != '' }}
         run: python ingestion/upload_cloudflare_kv.py --input frontend/latest_market_summary.json
+
+      - name: Upload GitHub Pages artifact
+        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend
+
+  deploy-pages:
+    name: Deploy dashboard to GitHub Pages
+    needs: bundle-proof
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Prepare GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -17,6 +17,7 @@ Add these repository secrets before running the workflow:
 - `CLOUDFLARE_API_TOKEN`: Cloudflare API token with write access to that KV namespace
 
 Personal access tokens can fail for bundle automation in CI because the Databricks CLI calls workspace identity APIs during validation. Use service-principal OAuth for GitHub Actions.
+Cloudflare KV upload is optional. If the Cloudflare secrets are not present, the workflow still deploys the static dashboard to GitHub Pages.
 
 ## Run The Proof
 
@@ -87,6 +88,7 @@ The stock fetch uses delayed Nasdaq historical quote data and does not require a
 In GitHub Actions, select `market_data_job` from the manual `bundle_job` input. The workflow fetches a fresh `sample_data/latest_market_batch.jsonl` before deploying the bundle, then Databricks processes that batch.
 
 After the market job succeeds, GitHub Actions queries Databricks through the SQL Statement API, writes `frontend/latest_market_summary.json`, and uploads that compact JSON to Cloudflare KV.
+The same `frontend/` directory is deployed to GitHub Pages so the existing portfolio can link to this project page without needing a public trigger endpoint.
 
 The dashboard JSON stays small:
 

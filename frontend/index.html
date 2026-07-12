@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Market Lakehouse Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Databricks Free Edition proof</p>
+        <h1>Market Lakehouse Dashboard</h1>
+      </div>
+      <a class="repo-link" href="https://github.com/anshuldhariwal/anshul-databricks-project">GitHub</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Near-real-time stock and crypto analytics</p>
+          <h2>GitHub Actions fetches market data, Databricks processes Bronze, Silver, and Gold tables, and this page renders the latest exported summary.</h2>
+        </div>
+        <div class="status-panel" aria-live="polite">
+          <span class="status-label">Last updated</span>
+          <strong id="last-updated">Loading</strong>
+          <span id="target-pill" class="pill">target</span>
+        </div>
+      </section>
+
+      <section class="metrics-grid" aria-label="Market summary">
+        <article class="metric-tile">
+          <span>Tracked assets</span>
+          <strong id="asset-count">0</strong>
+        </article>
+        <article class="metric-tile">
+          <span>Stocks</span>
+          <strong id="stock-count">0</strong>
+        </article>
+        <article class="metric-tile">
+          <span>Crypto</span>
+          <strong id="crypto-count">0</strong>
+        </article>
+        <article class="metric-tile">
+          <span>Latest batch rows</span>
+          <strong id="batch-count">0</strong>
+        </article>
+      </section>
+
+      <section class="flow-section" aria-label="Lakehouse flow">
+        <div class="flow-step">
+          <span>1</span>
+          <strong>Fetch</strong>
+          <p>Nasdaq and Coinbase public market data is collected by GitHub Actions.</p>
+        </div>
+        <div class="flow-step">
+          <span>2</span>
+          <strong>Bronze</strong>
+          <p>Raw normalized JSONL records land as managed Delta tables.</p>
+        </div>
+        <div class="flow-step">
+          <span>3</span>
+          <strong>Silver</strong>
+          <p>Databricks validates types, required fields, and deduplicated ticks.</p>
+        </div>
+        <div class="flow-step">
+          <span>4</span>
+          <strong>Gold</strong>
+          <p>Small dashboard-ready summaries are exported for the portfolio.</p>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel wide">
+          <div class="panel-heading">
+            <h2>Latest Prices</h2>
+            <span id="principal-label"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Type</th>
+                  <th>Price</th>
+                  <th>Volume</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody id="summary-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-heading">
+            <h2>Top Stock Transactions</h2>
+          </div>
+          <ol id="stock-leaders" class="leader-list"></ol>
+        </div>
+
+        <div class="panel">
+          <div class="panel-heading">
+            <h2>Top Crypto Transactions</h2>
+          </div>
+          <ol id="crypto-leaders" class="leader-list"></ol>
+        </div>
+
+        <div class="panel wide">
+          <div class="panel-heading">
+            <h2>Latest Bronze Records</h2>
+            <span>sample rows</span>
+          </div>
+          <div class="record-grid" id="bronze-records"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
