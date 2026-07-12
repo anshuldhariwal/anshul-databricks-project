@@ -9,3 +9,4 @@ dist/
 build/
 *.egg-info/
 AGENTS.md
+sample_data/automation_market_batch_*.jsonl

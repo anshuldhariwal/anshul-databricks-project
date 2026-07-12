@@ -90,6 +90,8 @@ In GitHub Actions, select `market_data_job` from the manual `bundle_job` input. 
 After the market job succeeds, GitHub Actions queries Databricks through the SQL Statement API, writes `frontend/latest_market_summary.json`, and uploads that compact JSON to Cloudflare KV.
 The same `frontend/` directory is deployed to GitHub Pages so the existing portfolio can link to this project page without needing a public trigger endpoint.
 
+For a bounded ingestion automation test, run the manual workflow with `automation_test` set to `true`. It fetches one market batch, deploys it, starts `market_data_job`, waits 30 seconds, fetches a second batch, deploys it, runs `market_data_job` again, exports the dashboard JSON, and then stops. The test is intentionally limited to two runs.
+
 The dashboard JSON stays small:
 
 - latest Bronze sample records: up to 10 rows

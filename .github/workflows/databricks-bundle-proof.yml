@@ -42,6 +42,14 @@ on:
           - proof_job
           - market_data_job
           - cleanup_proof_tables
+      automation_test:
+        description: Run a bounded two-cycle market automation test with a 30-second gap.
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: read
@@ -62,6 +70,7 @@ jobs:
       BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || 'dev' }}
       RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || github.event_name == 'schedule' && 'true' || 'false' }}
       BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
+      AUTOMATION_TEST: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.automation_test || 'false' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
@@ -78,36 +87,61 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Set up Python
-        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        if: ${{ env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Fetch market data batch
-        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        if: ${{ env.AUTOMATION_TEST != 'true' && env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
         run: python ingestion/run_pipeline.py --output sample_data/latest_market_batch.jsonl
 
       - name: Validate bundle
         run: databricks bundle validate --target "$BUNDLE_TARGET"
 
       - name: Deploy bundle
-        if: ${{ env.RUN_JOB == 'true' }}
+        if: ${{ env.AUTOMATION_TEST != 'true' && env.RUN_JOB == 'true' }}
         run: databricks bundle deploy --target "$BUNDLE_TARGET"
 
       - name: Run bundle job
-        if: ${{ env.RUN_JOB == 'true' }}
+        if: ${{ env.AUTOMATION_TEST != 'true' && env.RUN_JOB == 'true' }}
         run: databricks bundle run --target "$BUNDLE_TARGET" "$BUNDLE_JOB"
 
+      - name: Run two-cycle market automation test
+        if: ${{ env.AUTOMATION_TEST == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for cycle in 1 2; do
+            batch_file="automation_market_batch_${cycle}.jsonl"
+            echo "Fetching market batch ${cycle} into sample_data/${batch_file}"
+            python ingestion/run_pipeline.py --output "sample_data/${batch_file}"
+
+            echo "Deploying bundle with batch ${cycle}"
+            databricks bundle deploy --target "$BUNDLE_TARGET"
+
+            if [ "$cycle" = "1" ]; then
+              echo "Starting market_data_job cycle 1 without waiting"
+              databricks bundle run --target "$BUNDLE_TARGET" --notebook-params "market_batch_file=${batch_file}" --no-wait market_data_job
+              echo "Waiting 30 seconds before injecting cycle 2"
+              sleep 30
+            else
+              echo "Starting market_data_job cycle 2 and waiting for completion"
+              databricks bundle run --target "$BUNDLE_TARGET" --notebook-params "market_batch_file=${batch_file}" market_data_job
+            fi
+          done
+
       - name: Export market dashboard JSON
-        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
+        if: ${{ env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
         run: python ingestion/export_market_dashboard.py --target "$BUNDLE_TARGET" --output frontend/latest_market_summary.json
 
       - name: Upload market dashboard JSON to Cloudflare KV
-        if: ${{ env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' && env.CLOUDFLARE_ACCOUNT_ID != '' && env.CLOUDFLARE_KV_NAMESPACE_ID != '' && env.CLOUDFLARE_API_TOKEN != '' }}
+        if: ${{ (env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job')) && env.CLOUDFLARE_ACCOUNT_ID != '' && env.CLOUDFLARE_KV_NAMESPACE_ID != '' && env.CLOUDFLARE_API_TOKEN != '' }}
         run: python ingestion/upload_cloudflare_kv.py --input frontend/latest_market_summary.json
 
       - name: Upload GitHub Pages artifact
-        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || env.AUTOMATION_TEST == 'true' || (env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: frontend
@@ -115,7 +149,7 @@ jobs:
   deploy-pages:
     name: Deploy dashboard to GitHub Pages
     needs: bundle-proof
-    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job') }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.automation_test == 'true' || (github.event.inputs.run_job == 'true' && github.event.inputs.bundle_job == 'market_data_job'))) }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages

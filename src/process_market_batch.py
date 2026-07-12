@@ -33,7 +33,20 @@ bundle_target = dbutils.widgets.get("bundle_target")
 root_path = bundle_root()
 latest_batch_path = root_path / "sample_data" / "latest_market_batch.jsonl"
 sample_batch_path = root_path / "sample_data" / "sample_market_batch.jsonl"
-input_batch_path = latest_batch_path if latest_batch_path.exists() else sample_batch_path
+
+try:
+    market_batch_file = dbutils.widgets.get("market_batch_file").strip()
+except Exception:
+    market_batch_file = ""
+
+if market_batch_file:
+    if "/" in market_batch_file or "\\" in market_batch_file:
+        raise ValueError("market_batch_file must be a filename under sample_data.")
+    input_batch_path = root_path / "sample_data" / market_batch_file
+    if not input_batch_path.exists():
+        raise FileNotFoundError(f"Requested market batch file does not exist: {input_batch_path}")
+else:
+    input_batch_path = latest_batch_path if latest_batch_path.exists() else sample_batch_path
 
 print("Market batch processing started.")
 print(f"Bundle target: {bundle_target}")
