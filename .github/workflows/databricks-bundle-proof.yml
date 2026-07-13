@@ -71,6 +71,7 @@ jobs:
       RUN_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_job || github.event_name == 'schedule' && 'true' || 'false' }}
       BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
       AUTOMATION_TEST: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.automation_test || 'false' }}
+      WORKFLOW_EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
@@ -100,18 +101,7 @@ jobs:
 
       - name: Send run started email
         if: ${{ env.RUN_JOB == 'true' || env.AUTOMATION_TEST == 'true' }}
-        run: >
-          python ingestion/send_workflow_email.py
-          --subject "Databricks market automation started: $BUNDLE_TARGET/$BUNDLE_JOB"
-          --body "GitHub Actions run started.
-          Repository: $GITHUB_REPOSITORY
-          Workflow: $GITHUB_WORKFLOW
-          Run ID: $GITHUB_RUN_ID
-          Run attempt: $GITHUB_RUN_ATTEMPT
-          Target: $BUNDLE_TARGET
-          Job: $BUNDLE_JOB
-          Event: $GITHUB_EVENT_NAME
-          URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        run: python ingestion/send_workflow_email.py --status started
 
       - name: Fetch market data batch
         if: ${{ env.AUTOMATION_TEST != 'true' && env.RUN_JOB == 'true' && env.BUNDLE_JOB == 'market_data_job' }}
@@ -200,6 +190,8 @@ jobs:
       ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
       BUNDLE_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target || github.event_name == 'schedule' && 'prod' || 'dev' }}
       BUNDLE_JOB: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bundle_job || github.event_name == 'schedule' && github.event.schedule == '43 2 * * *' && 'cleanup_proof_tables' || github.event_name == 'schedule' && 'market_data_job' || 'proof_job' }}
+      AUTOMATION_TEST: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.automation_test || 'false' }}
+      WORKFLOW_EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -212,18 +204,9 @@ jobs:
       - name: Send completion email
         run: >
           python ingestion/send_workflow_email.py
-          --subject "Databricks market automation completed: ${{ needs.bundle-proof.result }}/${{ needs.deploy-pages.result }}"
-          --body "GitHub Actions run completed.
-          Repository: $GITHUB_REPOSITORY
-          Workflow: $GITHUB_WORKFLOW
-          Run ID: $GITHUB_RUN_ID
-          Run attempt: $GITHUB_RUN_ATTEMPT
-          Target: $BUNDLE_TARGET
-          Job: $BUNDLE_JOB
-          Bundle job result: ${{ needs.bundle-proof.result }}
-          Pages deploy result: ${{ needs.deploy-pages.result }}
-          Event: $GITHUB_EVENT_NAME
-          URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          --status completed
+          --bundle-result "${{ needs.bundle-proof.result }}"
+          --pages-result "${{ needs.deploy-pages.result }}"
 
   disable-scheduled-automation-on-failure:
     name: Disable scheduled automation after failure
